@@ -1,28 +1,26 @@
+import { sql } from "drizzle-orm";
 import { advocates } from "@/db/schema";
 import db from "@/db/index";
-import { MAX_ITEMS_PER_PAGE } from "@/constants";
 import { advocatesWhereClause } from "@/db/query";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query") || "";
-  const page = Number(searchParams.get("page") || "1");
-
-  const offset = (page - 1) * MAX_ITEMS_PER_PAGE;
 
   const whereClause =
     query.trim().length > 0 ? advocatesWhereClause(query) : undefined;
 
   try {
     const data = await (db as any)
-      .select()
+      .select({
+        count: sql<number>`COUNT(*)`,
+      })
       .from(advocates)
-      .where(whereClause)
-      .limit(MAX_ITEMS_PER_PAGE)
-      .offset(offset);
+      .where(whereClause);
+
     return Response.json({ data });
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to get advocates.");
+    throw new Error("Failed to get advocates count.");
   }
 }
