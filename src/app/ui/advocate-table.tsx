@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchFilteredAdvocates } from "../lib/advocates";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function AdvocateTable({
   query,
@@ -12,14 +13,42 @@ export default function AdvocateTable({
 }) {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
 
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+
+  const params = new URLSearchParams(searchParams);
+
+  let sortField = params.get("sort") || "createdAt";
+  let sortDirection = params.get("sortdir") || "desc";
+
   useEffect(() => {
     const fetchData = async () => {
-      console.log("fetching advocates...");
-      const advocatesData = await fetchFilteredAdvocates(query, page);
+      const advocatesData = await fetchFilteredAdvocates(
+        query,
+        page,
+        sortField,
+        sortDirection
+      );
       setAdvocates(advocatesData);
     };
     fetchData();
-  }, [page, query]);
+  }, [page, query, sortField, sortDirection]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      sortDirection = sortDirection === "asc" ? "desc" : "asc";
+    } else {
+      sortField = field;
+      sortDirection = "asc";
+    }
+
+    params.set("sort", sortField);
+    params.set("sortdir", sortDirection);
+    params.delete("page");
+
+    replace(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <div>
@@ -27,17 +56,56 @@ export default function AdvocateTable({
         <div>No advocates found</div>
       ) : (
         <div className="rounded-xl border shadow overflow-hidden">
-          {/* Headers */}
           <div
             className="grid grid-cols-7 bg-gray-100 text-sm font-semibold text-gray-700 px-4 py-3 gap-4"
             style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr 3fr 0.5fr 1fr" }}
           >
-            <div>First Name</div>
-            <div>Last Name</div>
-            <div>City</div>
-            <div>Degree</div>
+            <div
+              className="cursor-pointer flex items-center gap-1"
+              onClick={() => handleSort("firstName")}
+            >
+              First Name
+              {sortField === "firstName" && (
+                <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+              )}
+            </div>
+            <div
+              className="cursor-pointer flex items-center gap-1"
+              onClick={() => handleSort("lastName")}
+            >
+              Last Name
+              {sortField === "lastName" && (
+                <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+              )}
+            </div>
+            <div
+              className="cursor-pointer flex items-center gap-1"
+              onClick={() => handleSort("city")}
+            >
+              City
+              {sortField === "city" && (
+                <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+              )}
+            </div>
+            <div
+              className="cursor-pointer flex items-center gap-1"
+              onClick={() => handleSort("degree")}
+            >
+              Degree
+              {sortField === "degree" && (
+                <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+              )}
+            </div>
             <div>Specialties</div>
-            <div>Experience</div>
+            <div
+              className="cursor-pointer flex items-center gap-1"
+              onClick={() => handleSort("experience")}
+            >
+              Experience
+              {sortField === "experience" && (
+                <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+              )}
+            </div>
             <div>Phone</div>
           </div>
 

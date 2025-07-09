@@ -8,12 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-export default function Home(props: {
-  searchParams?: Promise<{
-    query?: string;
-    page?: string;
-  }>;
-}) {
+export default function Home() {
   const searchParams = useSearchParams();
   const query = searchParams.get("query") || "";
   const page = Number(searchParams.get("page")) || 1;

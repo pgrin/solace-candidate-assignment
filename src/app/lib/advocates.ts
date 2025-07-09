@@ -2,10 +2,14 @@ import { MAX_ITEMS_PER_PAGE } from "@/constants";
 
 export async function fetchFilteredAdvocates(
   query: string,
-  page: number
+  page: number,
+  sortField: string = "createdAt",
+  sortDirection: string = "desc"
 ): Promise<Advocate[]> {
   try {
-    const response = await fetch(`/api/advocates?query=${query}&page=${page}`);
+    let fetchUrl = `/api/advocates?query=${query}&page=${page}&sort=${sortField}&sortdir=${sortDirection}`;
+
+    const response = await fetch(fetchUrl);
     const jsonResponse = await response.json();
 
     return jsonResponse.data as Advocate[];
